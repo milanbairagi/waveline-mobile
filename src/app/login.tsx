@@ -2,7 +2,7 @@ import { useUser } from "@/context/useUser";
 import { Tokens } from "@/types";
 import api from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import * as z from "zod";
@@ -81,6 +81,13 @@ export default function Login() {
         <Text style={styles.errorText}>{errors.password.message}</Text>
       )}
 
+      <Text style={{ marginTop: 20 }}>
+        Don't have an account?{" "}
+        <Link style={styles.linkText} href="/register">
+          Register here.
+        </Link>
+      </Text>
+
       <View style={styles.buttonContainer}>
         <Button title="Login" onPress={handleSubmit(onSubmit)} />
       </View>
@@ -116,5 +123,9 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 10,
+  },
+  linkText: {
+    color: "blue",
+    textDecorationLine: "underline",
   },
 });
