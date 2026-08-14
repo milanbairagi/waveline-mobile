@@ -12,3 +12,30 @@ export type Tokens = {
   access: string;
   refresh: string;
 };
+
+type ParticipantDetails = {
+  id: number;
+  username: string;
+};
+
+export type Chat = {
+  id: number;
+  participants: number[];
+  participants_detail: ParticipantDetails[];
+  last_message: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChatDto = Pick<Chat, "participants">;
+
+export type Message = {
+  id: number;
+  chat: number;
+  sender: number;
+  content: string;
+  status: "sent" | "delivered" | "read";
+  timestamp: string;
+};
+
+export type MessageDto = Pick<Message, "content">;
