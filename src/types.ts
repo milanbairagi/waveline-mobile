@@ -18,9 +18,9 @@ type ParticipantDetails = {
   username: string;
 };
 
-export type Chat = {
+type Chat = {
   id: number;
-  participants: number[];
+  participants: [number, number];
   participants_detail: ParticipantDetails[];
   last_message: string;
   created_at: string;
@@ -28,6 +28,8 @@ export type Chat = {
 };
 
 export type ChatDto = Pick<Chat, "participants">;
+
+export type ChatResponse = Omit<Chat, "participants">;
 
 export type Message = {
   id: number;

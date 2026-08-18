@@ -22,7 +22,6 @@ export default function Index() {
       setChats([
         {
           id: 1,
-          participants: [user.id, 2],
           participants_detail: [
             { id: 1, username: user.username },
             { id: 2, username: "user2" },
@@ -33,7 +32,6 @@ export default function Index() {
         },
         {
           id: 2,
-          participants: [user.id, 3],
           participants_detail: [
             { id: 1, username: user.username },
             { id: 3, username: "user3" },

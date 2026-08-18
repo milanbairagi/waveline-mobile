@@ -1,9 +1,9 @@
 import { useUser } from "@/context/useUser";
-import type { Chat } from "@/types";
+import type { ChatResponse } from "@/types";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-export default function ChatCard({ chat }: { chat: Chat }) {
+export default function ChatCard({ chat }: { chat: ChatResponse }) {
   const { user } = useUser();
   const router = useRouter();
 

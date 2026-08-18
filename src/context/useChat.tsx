@@ -1,12 +1,12 @@
-import type { Chat, Message } from "@/types";
+import type { ChatResponse, Message } from "@/types";
 import { createContext, useContext, useState } from "react";
 
 const ChatContext = createContext<{
-  chats: Chat[];
-  setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
+  chats: ChatResponse[];
+  setChats: React.Dispatch<React.SetStateAction<ChatResponse[]>>;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
-  getChatById: (id: number) => Chat | null;
+  getChatById: (id: number) => ChatResponse | null;
 }>({
   chats: [],
   setChats: () => {},
@@ -16,7 +16,7 @@ const ChatContext = createContext<{
 });
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<ChatResponse[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
   const getChatById = (id: number) => {
