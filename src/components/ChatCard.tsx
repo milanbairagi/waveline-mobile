@@ -23,7 +23,9 @@ export default function ChatCard({ chat }: { chat: ChatResponse }) {
   return (
     <Pressable style={styles.container} onPress={handlePress}>
       <Text style={styles.username}>{otherParticipant.username}</Text>
-      <Text style={styles.lastMessage}>{chat.last_message}</Text>
+      <Text style={styles.lastMessage}>
+        {chat.last_message ? chat.last_message.content : "No messages yet"}
+      </Text>
     </Pressable>
   );
 }

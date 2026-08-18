@@ -22,7 +22,7 @@ type Chat = {
   id: number;
   participants: [number, number];
   participants_detail: ParticipantDetails[];
-  last_message: string;
+  last_message: Message | null;
   created_at: string;
   updated_at: string;
 };
