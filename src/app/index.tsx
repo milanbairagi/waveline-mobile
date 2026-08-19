@@ -1,14 +1,14 @@
 import ChatCard from "@/components/ChatCard";
-import { useChat } from "@/context/useChat";
 import { useUser } from "@/context/useUser";
+import type { ChatResponse } from "@/types";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
   const { user, loading, logoutUser } = useUser();
-  const { chats, setChats } = useChat();
+  const [chats, setChats] = useState<ChatResponse[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
