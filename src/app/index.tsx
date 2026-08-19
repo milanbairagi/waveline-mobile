@@ -1,6 +1,7 @@
 import ChatCard from "@/components/ChatCard";
 import { useUser } from "@/context/useUser";
 import type { ChatResponse } from "@/types";
+import api from "@/utils/api";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
@@ -17,45 +18,24 @@ export default function Index() {
   }, [loading, user, router]);
 
   useEffect(() => {
-    if (user) {
-      // Simulate fetching chats
-      setChats([
-        {
-          id: 1,
-          participants_detail: [
-            { id: 1, username: user.username },
-            { id: 2, username: "user2" },
-          ],
-          last_message: {
-            id: 1,
-            chat: 1,
-            sender: 2,
-            content: "Hello!",
-            status: "sent",
-            timestamp: new Date().toISOString(),
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        {
-          id: 2,
-          participants_detail: [
-            { id: 1, username: user.username },
-            { id: 3, username: "user3" },
-          ],
-          last_message: {
-            id: 2,
-            chat: 1,
-            sender: 1,
-            content: "Hii",
-            status: "sent",
-            timestamp: new Date().toISOString(),
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
+    if (!user) {
+      return;
     }
+    const fetchChats = async () => {
+      try {
+        const response = await api<ChatResponse[]>("/chats/");
+        if (response.status === 200) {
+          setChats(response.data);
+        } else {
+          console.log("Failed to fetch chats:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching chats:", error);
+      }
+    };
+    fetchChats().then(() => {
+      console.log("Chats fetched successfully");
+    });
   }, [user]);
 
   if (loading) {

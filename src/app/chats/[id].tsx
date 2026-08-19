@@ -1,21 +1,32 @@
-import { useChat } from "@/context/useChat";
 import { useUser } from "@/context/useUser";
+import { ChatResponse } from "@/types";
+import api from "@/utils/api";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function ChatMessage() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, loading } = useUser();
-  const { getChatById } = useChat();
   const router = useRouter();
   const [title, setTitle] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (loading) {
-      return;
-    }
+  const getChatById = useCallback(
+    async (id: number) => {
+      try {
+        const response = await api<ChatResponse>(`/chats/${id}/`);
+        if (response.status !== 200) {
+          return null;
+        }
+        return response.data;
+      } catch (error) {
+        return null;
+      }
+    },
+    [id],
+  );
 
+  useEffect(() => {
     if (!user) {
       router.replace("/login");
       return;
@@ -25,18 +36,20 @@ export default function ChatMessage() {
       setTitle(null);
       return;
     }
-    const chat = getChatById(Number(id));
-    if (!chat) {
-      router.replace("/");
-      return;
-    }
 
-    const otherParticipant =
-      chat.participants_detail[0].id === user.id
-        ? chat.participants_detail[1]
-        : chat.participants_detail[0];
+    getChatById(Number(id)).then((chat) => {
+      if (!chat) {
+        router.replace("/");
+        return;
+      }
 
-    setTitle(otherParticipant.username);
+      const otherParticipant =
+        chat.participants_detail[0].id === user.id
+          ? chat.participants_detail[1]
+          : chat.participants_detail[0];
+
+      setTitle(otherParticipant.username);
+    });
   }, [loading, user, getChatById, id]);
 
   if (loading) {
