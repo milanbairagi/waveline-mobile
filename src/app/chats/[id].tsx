@@ -1,15 +1,17 @@
+import ChatMessage from "@/components/ChatMessage";
 import { useUser } from "@/context/useUser";
-import { ChatResponse } from "@/types";
+import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-export default function ChatMessage() {
+export default function Messages() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, loading } = useUser();
   const router = useRouter();
   const [title, setTitle] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const getChatById = useCallback(
     async (id: number) => {
@@ -25,6 +27,23 @@ export default function ChatMessage() {
     },
     [id],
   );
+
+  const fetchMessages = useCallback(async () => {
+    if (!id || isNaN(Number(id))) {
+      return;
+    }
+
+    try {
+      const response = await api(`/chats/${id}/messages/`);
+      if (response.status === 200) {
+        setMessages(response.data.results as Message[]);
+      } else {
+        console.log("Failed to fetch messages:", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  }, [id]);
 
   useEffect(() => {
     if (!user) {
@@ -52,6 +71,10 @@ export default function ChatMessage() {
     });
   }, [loading, user, getChatById, id]);
 
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -63,15 +86,20 @@ export default function ChatMessage() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: title ?? `Chat ${id}` }} />
-      <Text>Chat Message with id: {id}</Text>
+      <ScrollView>
+        {messages.map((message) => (
+          <View key={message.id}>
+            <ChatMessage message={message} user={user} />
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    flex: 1,
+    height: "100%",
   },
 });
