@@ -1,4 +1,5 @@
 import ChatMessage from "@/components/ChatMessage";
+import MessageInput from "@/components/MessageInput";
 import { useUser } from "@/context/useUser";
 import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
@@ -75,6 +76,10 @@ export default function Messages() {
     fetchMessages();
   }, [fetchMessages]);
 
+  const handleSendMessage = async (content: string) => {
+    console.log("Sending message:", content);
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -93,6 +98,7 @@ export default function Messages() {
           </View>
         ))}
       </ScrollView>
+      <MessageInput handleSendMessage={handleSendMessage} />
     </View>
   );
 }
