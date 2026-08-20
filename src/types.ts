@@ -36,7 +36,7 @@ export type Message = {
   chat: number;
   sender: number;
   content: string;
-  status: "sent" | "delivered" | "read";
+  status: "sent" | "delivered" | "seen";
   timestamp: string;
 };
 
