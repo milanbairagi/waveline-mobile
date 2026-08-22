@@ -13,8 +13,14 @@ import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  type ListRenderItem,
+} from "react-native";
 
 type Pagination = {
   next: string | null;
@@ -31,6 +37,10 @@ export default function Messages() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, loading } = useUser();
   const router = useRouter();
+  const listRef = useRef<FlatList<Message> | null>(null);
+  const shouldScrollToBottomRef = useRef(false);
+  const isTopVisibleRef = useRef(false);
+  const loadingMoreRef = useRef(false);
   const [title, setTitle] = useState<string | null>(null);
   const [chat, setChat] = useState<ChatResponse | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -81,6 +91,7 @@ export default function Messages() {
           previous: response.data.previous,
         });
         setMessages(response.data.results as Message[]);
+        shouldScrollToBottomRef.current = true;
       } else {
         console.log("Failed to fetch messages:", response.status);
       }
@@ -207,7 +218,9 @@ export default function Messages() {
   };
 
   const handleLoadMore = useCallback(async () => {
-    if (!pagination.next) return;
+    if (!pagination.next || loadingMoreRef.current) return;
+
+    loadingMoreRef.current = true;
 
     try {
       const response: AxiosResponse<MessagesResponse> = await api(
@@ -222,8 +235,54 @@ export default function Messages() {
       }
     } catch (error) {
       console.error("Error fetching more messages:", error);
+    } finally {
+      loadingMoreRef.current = false;
     }
   }, [pagination.next]);
+
+  const renderMessage = useCallback<ListRenderItem<Message>>(
+    ({ item }) => <ChatMessage message={item} user={user} />,
+    [user],
+  );
+
+  const keyExtractor = useCallback((item: Message) => String(item.id), []);
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 100,
+  }).current;
+
+  const handleViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+      const topItemVisible = viewableItems.some((item) => item.index === 0);
+
+      if (!topItemVisible) {
+        isTopVisibleRef.current = false;
+        return;
+      }
+
+      if (isTopVisibleRef.current) {
+        return;
+      }
+
+      isTopVisibleRef.current = true;
+
+      if (pagination.next) {
+        void handleLoadMore();
+      }
+    },
+    [handleLoadMore, pagination.next],
+  );
+
+  const handleContentSizeChange = useCallback(() => {
+    if (!shouldScrollToBottomRef.current) {
+      return;
+    }
+
+    shouldScrollToBottomRef.current = false;
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToEnd({ animated: false });
+    });
+  }, []);
 
   if (loading) {
     return (
@@ -236,21 +295,19 @@ export default function Messages() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: title ?? `Chat ${id}` }} />
-      <ScrollView
+      <FlatList
+        ref={listRef}
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={keyExtractor}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-      >
-        {pagination.next && (
-          <Button title="Load More" onPress={handleLoadMore} />
-        )}
-        <View style={styles.messagesList}>
-          {messages.map((message) => (
-            <View key={message.id}>
-              <ChatMessage message={message} user={user} />
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+        onContentSizeChange={handleContentSizeChange}
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+        viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={handleViewableItemsChanged}
+        ItemSeparatorComponent={() => <View style={styles.messageSeparator} />}
+      />
       <MessageInput handleSendMessage={handleSendMessage} />
     </View>
   );
@@ -268,7 +325,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
 
-  messagesList: {
-    paddingBottom: 8,
+  messageSeparator: {
+    height: 12,
   },
 });
