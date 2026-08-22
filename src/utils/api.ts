@@ -34,7 +34,7 @@ api.interceptors.response.use(
     // If the error is a 401 Unauthorized and the request has not been retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      const refreshToken = getData(REFRESH_TOKEN);
+      const refreshToken = await getData(REFRESH_TOKEN);
       if (refreshToken) {
         try {
           const response = await axios.post(`${API_URL}/token/refresh/`, {
