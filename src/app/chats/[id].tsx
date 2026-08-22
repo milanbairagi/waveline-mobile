@@ -1,18 +1,55 @@
 import ChatMessage from "@/components/ChatMessage";
 import MessageInput from "@/components/MessageInput";
+import { ACCESS_TOKEN, SOCKET_URL } from "@/constants";
 import { useUser } from "@/context/useUser";
+import { useWebSocket } from "@/hooks/useWebSocket";
 import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { getData } from "@/utils/aStorage";
+import { AxiosResponse } from "axios";
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
+
+type Pagination = {
+  next: string | null;
+  previous: string | null;
+};
+
+type MessagesResponse = {
+  results: Message[];
+  next: string | null;
+  previous: string | null;
+};
 
 export default function Messages() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user, loading } = useUser();
   const router = useRouter();
   const [title, setTitle] = useState<string | null>(null);
+  const [chat, setChat] = useState<ChatResponse | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    next: null,
+    previous: null,
+  });
+
+  const {
+    connect,
+    disconnect,
+    isConnected,
+    sendMessage,
+    messages: wsMessage,
+    setMessages: wsSetMessages,
+    seenMessageIds,
+    setSeenMessageIds,
+    sendSeenMessageFlag,
+  } = useWebSocket(`${SOCKET_URL}/chats/message/`);
 
   const getChatById = useCallback(
     async (id: number) => {
@@ -35,8 +72,14 @@ export default function Messages() {
     }
 
     try {
-      const response = await api(`/chats/${id}/messages/`);
+      const response: AxiosResponse<MessagesResponse> = await api(
+        `/chats/${id}/messages/`,
+      );
       if (response.status === 200) {
+        setPagination({
+          next: response.data.next,
+          previous: response.data.previous,
+        });
         setMessages(response.data.results as Message[]);
       } else {
         console.log("Failed to fetch messages:", response.status);
@@ -46,39 +89,141 @@ export default function Messages() {
     }
   }, [id]);
 
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const prepareChat = async () => {
+        if (loading) {
+          return;
+        }
+
+        if (!user) {
+          router.replace("/login");
+          return;
+        }
+
+        if (!id || isNaN(Number(id))) {
+          setTitle(null);
+          return;
+        }
+
+        const chatRes = await getChatById(Number(id));
+        if (!chatRes || !isActive) {
+          if (!chatRes) {
+            router.replace("/");
+          }
+          return;
+        }
+        setChat(chatRes);
+
+        await fetchMessages();
+
+        const token = await getData(ACCESS_TOKEN);
+        if (token && isActive) {
+          connect(token as string);
+        }
+      };
+
+      prepareChat();
+
+      return () => {
+        isActive = false;
+        disconnect();
+      };
+    }, [
+      loading,
+      user,
+      router,
+      id,
+      getChatById,
+      fetchMessages,
+      connect,
+      disconnect,
+    ]),
+  );
+
+  // Update the title when the chat data changes
   useEffect(() => {
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-
-    if (!id || isNaN(Number(id))) {
-      setTitle(null);
-      return;
-    }
-
-    getChatById(Number(id)).then((chat) => {
-      if (!chat) {
-        router.replace("/");
-        return;
-      }
-
+    if (chat && user) {
       const otherParticipant =
         chat.participants_detail[0].id === user.id
           ? chat.participants_detail[1]
           : chat.participants_detail[0];
 
       setTitle(otherParticipant.username);
-    });
-  }, [loading, user, getChatById, id]);
+    }
+  }, [chat, user]);
 
+  // Process incoming WebSocket messages
   useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+    if (wsMessage.length === 0) {
+      return;
+    }
+
+    const seenIds = new Set(messages.map((msg) => msg.id));
+    const newMessages = wsMessage.filter((msg) => !seenIds.has(msg.id));
+
+    if (newMessages.length > 0) {
+      setMessages((prev) => [...prev, ...newMessages]);
+    }
+
+    wsSetMessages([]); // Clear wsMessage after processing
+  }, [wsMessage, wsSetMessages, messages]);
+
+  // Update message status to "seen" when the user views them
+  useEffect(() => {
+    if (!user || messages.length === 0) {
+      return;
+    }
+
+    const unseenMessages = messages
+      .filter((msg) => msg.sender !== user.id && msg.status !== "seen")
+      .map((msg) => msg.id);
+
+    if (unseenMessages.length > 0) {
+      sendSeenMessageFlag(Number(id), unseenMessages);
+    }
+  }, [messages, user, id, sendSeenMessageFlag]);
+
+  // Update seen messages when other participant reads them
+  useEffect(() => {
+    if (seenMessageIds.length === 0) {
+      return;
+    }
+
+    const ids = new Set(seenMessageIds);
+    setMessages((prev) =>
+      prev.map((msg) => (ids.has(msg.id) ? { ...msg, status: "seen" } : msg)),
+    );
+    setSeenMessageIds([]); // Clear seenMessageIds after processing
+  }, [seenMessageIds, setSeenMessageIds]);
 
   const handleSendMessage = async (content: string) => {
     console.log("Sending message:", content);
+    if (content.trim() && isConnected && id) {
+      sendMessage(Number(id), content);
+    }
   };
+
+  const handleLoadMore = useCallback(async () => {
+    if (!pagination.next) return;
+
+    try {
+      const response: AxiosResponse<MessagesResponse> = await api(
+        pagination.next,
+      );
+      if (response.status === 200) {
+        setPagination({
+          next: response.data.next,
+          previous: response.data.previous,
+        });
+        setMessages((prev) => [...response.data.results, ...prev]);
+      }
+    } catch (error) {
+      console.error("Error fetching more messages:", error);
+    }
+  }, [pagination.next]);
 
   if (loading) {
     return (
@@ -91,12 +236,20 @@ export default function Messages() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: title ?? `Chat ${id}` }} />
-      <ScrollView>
-        {messages.map((message) => (
-          <View key={message.id}>
-            <ChatMessage message={message} user={user} />
-          </View>
-        ))}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {pagination.next && (
+          <Button title="Load More" onPress={handleLoadMore} />
+        )}
+        <View style={styles.messagesList}>
+          {messages.map((message) => (
+            <View key={message.id}>
+              <ChatMessage message={message} user={user} />
+            </View>
+          ))}
+        </View>
       </ScrollView>
       <MessageInput handleSendMessage={handleSendMessage} />
     </View>
@@ -106,6 +259,16 @@ export default function Messages() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    height: "100%",
+    backgroundColor: "#FFFFFF",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingVertical: 12,
+  },
+
+  messagesList: {
+    paddingBottom: 8,
   },
 });
