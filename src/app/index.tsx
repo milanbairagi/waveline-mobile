@@ -2,8 +2,8 @@ import ChatCard from "@/components/ChatCard";
 import { useUser } from "@/context/useUser";
 import type { ChatResponse } from "@/types";
 import api from "@/utils/api";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
@@ -17,26 +17,29 @@ export default function Index() {
     }
   }, [loading, user, router]);
 
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-    const fetchChats = async () => {
-      try {
-        const response = await api<ChatResponse[]>("/chats/");
-        if (response.status === 200) {
-          setChats(response.data);
-        } else {
-          console.log("Failed to fetch chats:", response.status);
-        }
-      } catch (error) {
-        console.error("Error fetching chats:", error);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        return;
       }
-    };
-    fetchChats().then(() => {
-      console.log("Chats fetched successfully");
-    });
-  }, [user]);
+      const fetchChats = async () => {
+        try {
+          const response = await api<ChatResponse[]>("/chats/");
+          if (response.status === 200) {
+            setChats(response.data);
+          } else {
+            console.log("Failed to fetch chats:", response.status);
+          }
+        } catch (error) {
+          console.log("Error fetching chats:", error);
+          router.replace("/login");
+        }
+      };
+      fetchChats().then(() => {
+        console.log("Chats fetched successfully");
+      });
+    }, [user]),
+  );
 
   if (loading) {
     return (
