@@ -61,7 +61,12 @@ export default function Index() {
               trigger={<Text>⋮</Text>}
               items={[
                 { label: "Logout", onPress: logoutUser },
-                { label: "Settings", onPress: () => {} },
+                {
+                  label: "Settings",
+                  onPress: () => {
+                    router.push("/settings");
+                  },
+                },
               ]}
             />
           ),
