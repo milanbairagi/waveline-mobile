@@ -1,10 +1,11 @@
 import ChatCard from "@/components/ChatCard";
+import MainDropdownMenu from "@/components/DropDown";
 import { useUser } from "@/context/useUser";
 import type { ChatResponse } from "@/types";
 import api from "@/utils/api";
-import { useFocusEffect, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
@@ -50,14 +51,29 @@ export default function Index() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text>Welcome, {user?.username}!</Text>
-      <Button title="Logout" onPress={logoutUser} />
-      <Text style={styles.h1}>Chats:</Text>
-      {chats.map((chat) => (
-        <ChatCard key={chat.id} chat={chat} />
-      ))}
-    </View>
+    <>
+      <Stack.Screen
+        options={{
+          headerTitle: "WaveLine",
+          headerBackVisible: false,
+          headerRight: () => (
+            <MainDropdownMenu
+              trigger={<Text>⋮</Text>}
+              items={[
+                { label: "Logout", onPress: logoutUser },
+                { label: "Settings", onPress: () => {} },
+              ]}
+            />
+          ),
+        }}
+      />
+
+      <View style={styles.container}>
+        {chats.map((chat) => (
+          <ChatCard key={chat.id} chat={chat} />
+        ))}
+      </View>
+    </>
   );
 }
 
@@ -66,9 +82,5 @@ const styles = StyleSheet.create({
     flex: 1,
     // justifyContent: "center",
     alignContent: "center",
-  },
-  h1: {
-    fontSize: 24,
-    fontWeight: "bold",
   },
 });
