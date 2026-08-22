@@ -5,9 +5,21 @@ export default function RootLayout() {
   return (
     <UserProvider>
       <Stack>
-        <Stack.Screen name="index" options={{ title: "Home" }} />
-        <Stack.Screen name="login" options={{ title: "Login" }} />
-        <Stack.Screen name="register" options={{ title: "Register" }} />
+        <Stack.Screen
+          name="index"
+          options={{
+            headerTitle: "WaveLine",
+            headerBackVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="login"
+          options={{ title: "Login", headerBackVisible: false }}
+        />
+        <Stack.Screen
+          name="register"
+          options={{ title: "Register", headerBackVisible: false }}
+        />
         <Stack.Screen name="chats/[id]" />
       </Stack>
     </UserProvider>
