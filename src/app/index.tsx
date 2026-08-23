@@ -5,7 +5,7 @@ import type { ChatResponse } from "@/types";
 import api from "@/utils/api";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
@@ -58,7 +58,7 @@ export default function Index() {
           headerBackVisible: false,
           headerRight: () => (
             <MainDropdownMenu
-              trigger={<Text>⋮</Text>}
+              trigger={<Text style={{ fontSize: 24 }}>⋮</Text>}
               items={[
                 { label: "Logout", onPress: logoutUser },
                 {
@@ -74,6 +74,7 @@ export default function Index() {
       />
 
       <View style={styles.container}>
+        <DummySearchBar handleClick={() => router.push("/chats/search")} />
         {chats.map((chat) => (
           <ChatCard key={chat.id} chat={chat} />
         ))}
@@ -82,10 +83,31 @@ export default function Index() {
   );
 }
 
+function DummySearchBar({ handleClick }: { handleClick: () => void }) {
+  return (
+    <Pressable onPress={handleClick}>
+      <View style={styles.searchContainer}>
+        <Text style={styles.searchText}>Search</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     // justifyContent: "center",
     alignContent: "center",
+  },
+
+  searchContainer: {
+    padding: 10,
+    backgroundColor: "#e1e1e1",
+    borderRadius: 8,
+    margin: 10,
+  },
+  searchText: {
+    color: "#888",
+    fontSize: 16,
   },
 });
