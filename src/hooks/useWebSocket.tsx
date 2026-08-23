@@ -34,11 +34,12 @@ type WebSocketSeenSender = (
   messageIds: number[],
 ) => void;
 
-export const useWebSocket = (url: string) => {
+export const useWebSocket = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [seenMessageIds, setSeenMessageIds] = useState<number[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
+  const [socketURL, setSocketURL] = useState<string | null>(null);
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
@@ -53,8 +54,9 @@ export const useWebSocket = (url: string) => {
       if (socketRef.current?.readyState === WebSocket.OPEN) {
         socketRef.current.close();
       }
+      if (!socketURL) return;
 
-      const ws = new WebSocket(url);
+      const ws = new WebSocket(socketURL);
       socketRef.current = ws;
 
       ws.onopen = () => {
@@ -101,7 +103,7 @@ export const useWebSocket = (url: string) => {
 
       return ws;
     },
-    [url, disconnect],
+    [socketURL, disconnect],
   );
 
   const sendMessage = useCallback<WebSocketMessageSender>((chatId, content) => {
@@ -138,6 +140,8 @@ export const useWebSocket = (url: string) => {
   }, [disconnect]);
 
   return {
+    socketURL,
+    setSocketURL,
     connect,
     disconnect,
     sendMessage,

@@ -1,11 +1,12 @@
 import ChatMessage from "@/components/ChatMessage";
 import MessageInput from "@/components/MessageInput";
-import { ACCESS_TOKEN, SOCKET_URL } from "@/constants";
+import { ACCESS_TOKEN_KEY } from "@/constants";
 import { useUser } from "@/context/useUser";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
 import { getData } from "@/utils/aStorage";
+import { getSocketBaseURL } from "@/utils/getBaseUrl";
 import { AxiosResponse } from "axios";
 import {
   Stack,
@@ -50,6 +51,8 @@ export default function Messages() {
   });
 
   const {
+    socketURL,
+    setSocketURL,
     connect,
     disconnect,
     isConnected,
@@ -59,7 +62,7 @@ export default function Messages() {
     seenMessageIds,
     setSeenMessageIds,
     sendSeenMessageFlag,
-  } = useWebSocket(`${SOCKET_URL}/chats/message/`);
+  } = useWebSocket();
 
   const getChatById = useCallback(
     async (id: number) => {
@@ -100,6 +103,12 @@ export default function Messages() {
     }
   }, [id]);
 
+  useEffect(() => {
+    getSocketBaseURL().then((url) => {
+      setSocketURL(`${url}/chats/message/`);
+    });
+  }, [setSocketURL]);
+
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
@@ -119,6 +128,10 @@ export default function Messages() {
           return;
         }
 
+        if (!socketURL) {
+          return;
+        }
+
         const chatRes = await getChatById(Number(id));
         if (!chatRes || !isActive) {
           if (!chatRes) {
@@ -130,7 +143,7 @@ export default function Messages() {
 
         await fetchMessages();
 
-        const token = await getData(ACCESS_TOKEN);
+        const token = await getData(ACCESS_TOKEN_KEY);
         if (token && isActive) {
           connect(token as string);
         }

@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from "../constants";
 import api from "../utils/api";
 import { saveData } from "../utils/aStorage";
 
@@ -49,8 +49,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       // Store tokens
       const accessToken = tokens.access;
       const refreshToken = tokens.refresh;
-      await saveData(ACCESS_TOKEN, accessToken);
-      await saveData(REFRESH_TOKEN, refreshToken);
+      await saveData(ACCESS_TOKEN_KEY, accessToken);
+      await saveData(REFRESH_TOKEN_KEY, refreshToken);
 
       // Fetch and set user data
       const userResponse = await api.get("/accounts/me/");
@@ -71,8 +71,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const clearStorage = async () => {
-    await saveData(ACCESS_TOKEN, null);
-    await saveData(REFRESH_TOKEN, null);
+    await saveData(ACCESS_TOKEN_KEY, null);
+    await saveData(REFRESH_TOKEN_KEY, null);
   };
 
   useEffect(() => {
