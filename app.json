@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "waveline-mobile",
+    "name": "WaveLine",
     "slug": "waveline-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,12 +12,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#E6F4FE"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.waveline"
     },
     "web": {
       "output": "static",
@@ -28,15 +26,22 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 200
         }
-      ]
+      ],
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "478b9e58-50f8-4857-b256-b62b6fb24ae0"
+      }
     }
   }
 }
