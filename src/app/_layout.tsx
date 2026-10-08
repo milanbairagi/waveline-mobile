@@ -22,6 +22,7 @@ export default function RootLayout() {
         />
         <Stack.Screen name="chats/[id]" />
         <Stack.Screen name="chats/search" />
+        <Stack.Screen name="userMedia/[id]" />
         <Stack.Screen name="settings" options={{ title: "Settings" }} />
       </Stack>
     </UserProvider>

@@ -16,6 +16,7 @@ import {
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Button,
   FlatList,
   StyleSheet,
   Text,
@@ -63,6 +64,12 @@ export default function Messages() {
     setSeenMessageIds,
     sendSeenMessageFlag,
   } = useWebSocket();
+
+  const handleGoToVideoCall = useCallback(() => {
+    if (id) {
+      router.replace({ pathname: "/userMedia/[id]" as never, params: { id } });
+    }
+  }, [id, router]);
 
   const getChatById = useCallback(
     async (id: number) => {
@@ -308,6 +315,8 @@ export default function Messages() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: title ?? `Chat ${id}` }} />
+      <Button title="Video Call" onPress={handleGoToVideoCall} />
+
       <FlatList
         ref={listRef}
         data={messages}
