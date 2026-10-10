@@ -1,12 +1,9 @@
 import ChatMessage from "@/components/ChatMessage";
 import MessageInput from "@/components/MessageInput";
-import { ACCESS_TOKEN_KEY } from "@/constants";
+import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
-import { useWebSocket } from "@/hooks/useWebSocket";
 import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
-import { getData } from "@/utils/aStorage";
-import { getSocketBaseURL } from "@/utils/getBaseUrl";
 import { AxiosResponse } from "axios";
 import {
   Stack,
@@ -53,9 +50,6 @@ export default function Messages() {
 
   const {
     socketURL,
-    setSocketURL,
-    connect,
-    disconnect,
     isConnected,
     sendMessage,
     messages: wsMessage,
@@ -63,7 +57,8 @@ export default function Messages() {
     seenMessageIds,
     setSeenMessageIds,
     sendSeenMessageFlag,
-  } = useWebSocket();
+    loading: wsLoading,
+  } = useRootWebSocket();
 
   const handleGoToVideoCall = useCallback(() => {
     if (id) {
@@ -110,12 +105,6 @@ export default function Messages() {
     }
   }, [id]);
 
-  useEffect(() => {
-    getSocketBaseURL().then((url) => {
-      setSocketURL(`${url}/chats/message/`);
-    });
-  }, [setSocketURL]);
-
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
@@ -135,7 +124,7 @@ export default function Messages() {
           return;
         }
 
-        if (!socketURL) {
+        if (!socketURL || wsLoading) {
           return;
         }
 
@@ -149,29 +138,14 @@ export default function Messages() {
         setChat(chatRes);
 
         await fetchMessages();
-
-        const token = await getData(ACCESS_TOKEN_KEY);
-        if (token && isActive) {
-          connect(token as string);
-        }
       };
 
       prepareChat();
 
       return () => {
         isActive = false;
-        disconnect();
       };
-    }, [
-      loading,
-      user,
-      router,
-      id,
-      getChatById,
-      fetchMessages,
-      connect,
-      disconnect,
-    ]),
+    }, [loading, user, router, id, getChatById, fetchMessages]),
   );
 
   // Update the title when the chat data changes
