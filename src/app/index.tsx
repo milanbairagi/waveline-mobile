@@ -1,5 +1,6 @@
 import ChatCard from "@/components/ChatCard";
 import MainDropdownMenu from "@/components/DropDown";
+import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
 import type { ChatResponse } from "@/types";
 import api from "@/utils/api";
@@ -11,6 +12,11 @@ export default function Index() {
   const router = useRouter();
   const { user, loading, logoutUser } = useUser();
   const [chats, setChats] = useState<ChatResponse[]>([]);
+  const {
+    isConnected,
+    messages: wsMessages,
+    setMessages: wsSetMessages,
+  } = useRootWebSocket();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -41,6 +47,34 @@ export default function Index() {
       });
     }, [user]),
   );
+
+  // Process incoming WebSocket messages
+  useEffect(() => {
+    if (!isConnected || wsMessages.length === 0) {
+      return;
+    }
+
+    wsMessages.forEach((msg) => {
+      // Check if the message belongs to a chat that is not in the current list of chats
+      if (!chats.some((chat) => chat.id === msg.chat)) {
+        // Fetch the chat details and add it to the list of chats
+        api<ChatResponse>(`/chats/${msg.chat}/`).then((res) => {
+          if (res.status === 200) {
+            setChats((prevChats) => [res.data, ...prevChats]);
+          }
+        });
+      }
+      // Update last message in the corresponding chat
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat.id === msg.chat ? { ...chat, last_message: msg } : chat,
+        ),
+      );
+    });
+
+    // Clear the WebSocket messages after processing to avoid re-processing
+    wsSetMessages([]);
+  }, [wsMessages, isConnected, chats, wsSetMessages]);
 
   if (loading) {
     return (
