@@ -11,7 +11,7 @@ export default function UserMediaScreen() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphonePermission, requestMicrophonePermission] =
     useMicrophonePermissions();
-  const [cameraFacing, setCameraFacing] = useState<CameraType>("back");
+  const [cameraFacing, setCameraFacing] = useState<CameraType>("front");
 
   if (!cameraPermission || !microphonePermission) {
     return <Text>Loading permissions...</Text>;

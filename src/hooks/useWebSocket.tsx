@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Message } from "../types";
 
-type IncomingSocketEvent =
+export type IncomingSocketEvent =
   | {
       type: "chat_message";
       message: Message;
