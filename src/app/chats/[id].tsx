@@ -1,5 +1,6 @@
 import ChatMessage from "@/components/ChatMessage";
 import MessageInput from "@/components/MessageInput";
+import { useCall } from "@/context/useCallContext";
 import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
 import { ChatResponse, Message } from "@/types";
@@ -59,12 +60,13 @@ export default function Messages() {
     sendSeenMessageFlag,
     loading: wsLoading,
   } = useRootWebSocket();
+  const { startCall } = useCall();
 
-  const handleGoToVideoCall = useCallback(() => {
+  const handleGoToVideoCall = useCallback(async () => {
     if (id) {
-      router.replace({ pathname: "/userMedia/[id]" as never, params: { id } });
+      await startCall(Number(id));
     }
-  }, [id, router]);
+  }, [id, startCall]);
 
   const getChatById = useCallback(
     async (id: number) => {
