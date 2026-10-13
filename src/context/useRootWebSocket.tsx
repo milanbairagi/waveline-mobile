@@ -20,6 +20,7 @@ const RootWebSocketContext = createContext<
   seenMessageIds: [],
   setSeenMessageIds: () => {},
   sendSeenMessageFlag: () => {},
+  socketRef: { current: null },
   loading: true,
 });
 
@@ -40,6 +41,7 @@ export const RootWebSocketProvider = ({
     seenMessageIds,
     setSeenMessageIds,
     sendSeenMessageFlag,
+    socketRef,
   } = useWebSocket();
 
   const [loading, setLoading] = useState(true);
@@ -78,6 +80,7 @@ export const RootWebSocketProvider = ({
         seenMessageIds,
         setSeenMessageIds,
         sendSeenMessageFlag,
+        socketRef,
         loading,
       }}
     >
