@@ -49,6 +49,24 @@ export const useWebSocket = () => {
     }
   }, []);
 
+  const handleMessage = useCallback(
+    (event: MessageEvent<string>) => {
+      const data = JSON.parse(event.data) as IncomingSocketEvent;
+
+      if (data.type === "chat_message") {
+        setMessages((prev) => [...prev, data.message]);
+      } else if (data.type === "message_seen") {
+        const { message_ids } = data;
+        setSeenMessageIds((prev) => [...prev, ...message_ids]);
+      } else if (data.type === "error") {
+        disconnect();
+      } else if (data.type === "authenticated") {
+        // console.log("User authenticated successfully");
+      }
+    },
+    [disconnect],
+  );
+
   const connect = useCallback(
     (token: string) => {
       if (socketRef.current?.readyState === WebSocket.OPEN) {
@@ -74,23 +92,9 @@ export const useWebSocket = () => {
         }
       };
 
-      ws.onmessage = (event: MessageEvent<string>) => {
-        const data = JSON.parse(event.data) as IncomingSocketEvent;
-
-        if (data.type == "chat_message") {
-          setMessages((prev) => [...prev, data.message]);
-        } else if (data.type === "message_seen") {
-          const { message_ids } = data;
-          setSeenMessageIds((prev) => [...prev, ...message_ids]);
-        } else if (data.type === "error") {
-          disconnect();
-        } else if (data.type === "authenticated") {
-          // console.log("User authenticated successfully");
-        }
-      };
+      ws.onmessage = handleMessage;
 
       ws.onclose = () => {
-        // console.log("WebSocket connection closed");
         setIsConnected(false);
         socketRef.current = null;
       };
@@ -103,7 +107,7 @@ export const useWebSocket = () => {
 
       return ws;
     },
-    [socketURL, disconnect],
+    [socketURL, handleMessage],
   );
 
   const sendMessage = useCallback<WebSocketMessageSender>((chatId, content) => {
@@ -151,5 +155,6 @@ export const useWebSocket = () => {
     seenMessageIds,
     setSeenMessageIds,
     sendSeenMessageFlag,
+    socketRef,
   };
 };
