@@ -13,8 +13,8 @@ const CallContext = createContext<CallContextValue | null>(null);
 
 export function CallProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { socketRef } = useRootWebSocket();
-  const call = useVideoCall(socketRef);
+  const { socketRef, isConnected } = useRootWebSocket();
+  const call = useVideoCall(socketRef, isConnected);
 
   const handleStartCall = useCallback(
     async (roomId: number) => {

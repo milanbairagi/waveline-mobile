@@ -26,7 +26,10 @@ const CALL_MEDIA_CONSTRAINTS = {
   video: { facingMode: "user", width: 640, height: 480, frameRate: 30 },
 };
 
-export function useVideoCall(ws: RefObject<WebSocket | null>) {
+export function useVideoCall(
+  ws: RefObject<WebSocket | null>,
+  isConnected: boolean,
+) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [incomingOffer, setIncomingOffer] = useState<IncomingOffer | null>(
@@ -145,10 +148,11 @@ export function useVideoCall(ws: RefObject<WebSocket | null>) {
   );
 
   useEffect(() => {
-    const socket = ws.current;
-    if (!socket) {
+    if (!isConnected || !ws.current) {
       return;
     }
+
+    const socket = ws.current;
 
     const handleMessage = async ({ data }: MessageEvent<string>) => {
       const msg = JSON.parse(data);
@@ -183,6 +187,7 @@ export function useVideoCall(ws: RefObject<WebSocket | null>) {
       }
 
       if (msg.payload_type === "hangup") {
+        console.log("Received call hangup:", msg);
         resetCallState();
       }
     };
@@ -192,7 +197,13 @@ export function useVideoCall(ws: RefObject<WebSocket | null>) {
     return () => {
       socket.removeEventListener("message", handleMessage);
     };
-  }, [ws, ensurePeerConnection, flushPendingCandidates, resetCallState]);
+  }, [
+    isConnected,
+    ws,
+    ensurePeerConnection,
+    flushPendingCandidates,
+    resetCallState,
+  ]);
 
   const startCall = useCallback(
     async (roomId: number) => {
