@@ -1,6 +1,6 @@
 import { useCall } from "@/context/useCallContext";
-import { Stack, useLocalSearchParams } from "expo-router";
-import { useEffect } from "react";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RTCView } from "react-native-webrtc";
 
@@ -9,26 +9,21 @@ export default function CallView() {
   const {
     localStream,
     remoteStream,
-    incomingOffer,
     endCall,
     toggleMute,
     toggleCamera,
     flipCamera,
-    startCall,
   } = useCall();
 
-  useEffect(() => {
-    if (!id || Number.isNaN(Number(id))) {
-      return;
-    }
-
-    if (!incomingOffer && !localStream && !remoteStream) {
-      void startCall(Number(id));
-    }
-  }, [id, incomingOffer, localStream, remoteStream, startCall]);
+  const router = useRouter();
 
   const streamUrl = localStream?.toURL?.();
   const remoteUrl = remoteStream?.toURL?.();
+
+  const handleEndCall = useCallback(() => {
+    endCall();
+    router.replace({ pathname: "/chats/[id]" as never, params: { id } });
+  }, [endCall, router, id]);
 
   return (
     <View style={styles.container}>
@@ -69,9 +64,7 @@ export default function CallView() {
         </Pressable>
         <Pressable
           style={[styles.controlButton, styles.endButton]}
-          onPress={() => {
-            endCall();
-          }}
+          onPress={handleEndCall}
         >
           <Text style={styles.controlText}>End</Text>
         </Pressable>
