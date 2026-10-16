@@ -5,21 +5,21 @@ import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
 import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
+import { FontAwesomeFreeSolid } from "@react-native-vector-icons/fontawesome-free-solid";
 import { AxiosResponse } from "axios";
 import {
-    Stack,
-    useFocusEffect,
-    useLocalSearchParams,
-    useRouter,
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-    Button,
-    FlatList,
-    StyleSheet,
-    Text,
-    View,
-    type ListRenderItem,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  type ListRenderItem,
 } from "react-native";
 
 type Pagination = {
@@ -293,17 +293,29 @@ export default function Messages() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: title ?? `Chat ${id}` }} />
-      <View style={styles.callActions}>
-        <Button
-          title="Video Call"
-          onPress={() => void handleGoToCall("video")}
-        />
-        <Button
-          title="Audio Call"
-          onPress={() => void handleGoToCall("audio")}
-        />
-      </View>
+      {/* <Stack.Screen options={{ title: title ?? `Chat ${id}` }} /> */}
+
+      <Stack.Screen
+        options={{
+          headerTitle: title ?? `Chat ${id}`,
+          headerRight: () => (
+            <View style={styles.callActions}>
+              <FontAwesomeFreeSolid
+                name="phone"
+                size={24}
+                color="black"
+                onPress={() => void handleGoToCall("audio")}
+              />
+              <FontAwesomeFreeSolid
+                name="video-camera"
+                size={24}
+                color="black"
+                onPress={() => void handleGoToCall("video")}
+              />
+            </View>
+          ),
+        }}
+      />
 
       <FlatList
         ref={listRef}
@@ -336,8 +348,8 @@ const styles = StyleSheet.create({
   },
   callActions: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
+    justifyContent: "flex-end",
+    gap: 16,
     paddingHorizontal: 12,
     paddingTop: 12,
   },

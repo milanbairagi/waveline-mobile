@@ -48,7 +48,7 @@ export default function Login() {
         options={{
           headerRight: () => (
             <MainDropdownMenu
-              trigger={<Text>⋮</Text>}
+              trigger={<Text style={styles.headerRightText}>⋮</Text>}
               items={[
                 {
                   label: "Settings",
@@ -148,5 +148,11 @@ const styles = StyleSheet.create({
   linkText: {
     color: "blue",
     textDecorationLine: "underline",
+  },
+  headerRightText: {
+    fontSize: 24,
+    color: "black",
+    marginRight: 10,
+    padding: 5,
   },
 });
