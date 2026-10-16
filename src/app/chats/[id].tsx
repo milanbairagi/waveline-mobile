@@ -7,19 +7,19 @@ import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
 import { AxiosResponse } from "axios";
 import {
-  Stack,
-  useFocusEffect,
-  useLocalSearchParams,
-  useRouter,
+    Stack,
+    useFocusEffect,
+    useLocalSearchParams,
+    useRouter,
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Button,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-  type ListRenderItem,
+    Button,
+    FlatList,
+    StyleSheet,
+    Text,
+    View,
+    type ListRenderItem,
 } from "react-native";
 
 type Pagination = {
@@ -62,11 +62,14 @@ export default function Messages() {
   } = useRootWebSocket();
   const { startCall } = useCall();
 
-  const handleGoToVideoCall = useCallback(async () => {
-    if (id) {
-      await startCall(Number(id));
-    }
-  }, [id, startCall]);
+  const handleGoToCall = useCallback(
+    async (mediaType: "audio" | "video") => {
+      if (id) {
+        await startCall(Number(id), mediaType);
+      }
+    },
+    [id, startCall],
+  );
 
   const getChatById = useCallback(
     async (id: number) => {
@@ -291,7 +294,16 @@ export default function Messages() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: title ?? `Chat ${id}` }} />
-      <Button title="Video Call" onPress={handleGoToVideoCall} />
+      <View style={styles.callActions}>
+        <Button
+          title="Video Call"
+          onPress={() => void handleGoToCall("video")}
+        />
+        <Button
+          title="Audio Call"
+          onPress={() => void handleGoToCall("audio")}
+        />
+      </View>
 
       <FlatList
         ref={listRef}
@@ -322,7 +334,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingVertical: 12,
   },
-
+  callActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+  },
   messageSeparator: {
     height: 12,
   },

@@ -7,6 +7,8 @@ import {
   RTCSessionDescription,
 } from "react-native-webrtc";
 
+export type CallMediaType = "audio" | "video";
+
 const ICE_SERVERS = {
   iceServers: [
     {
@@ -18,11 +20,21 @@ const ICE_SERVERS = {
 type IncomingOffer = {
   chatId: number;
   sdp: ConstructorParameters<typeof RTCSessionDescription>[0];
+  mediaType: CallMediaType;
 };
 
-const CALL_MEDIA_CONSTRAINTS = {
-  audio: true,
-  video: { facingMode: "user", width: 640, height: 480, frameRate: 30 },
+const getCallMediaConstraints = (mediaType: CallMediaType) => {
+  if (mediaType === "audio") {
+    return {
+      audio: true,
+      video: false,
+    };
+  }
+
+  return {
+    audio: true,
+    video: { facingMode: "user", width: 640, height: 480, frameRate: 30 },
+  };
 };
 
 export function useVideoCall(
@@ -34,9 +46,11 @@ export function useVideoCall(
   const [incomingOffer, setIncomingOffer] = useState<IncomingOffer | null>(
     null,
   );
+  const [callMediaType, setCallMediaType] = useState<CallMediaType>("video");
   const pc = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const activeChatIdRef = useRef<number | null>(null);
+  const activeCallMediaTypeRef = useRef<CallMediaType>("video");
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const attachedMediaPeerRef = useRef<RTCPeerConnection | null>(null);
 
@@ -61,6 +75,8 @@ export function useVideoCall(
     attachedMediaPeerRef.current = null;
     pendingCandidatesRef.current = [];
     activeChatIdRef.current = null;
+    activeCallMediaTypeRef.current = "video";
+    setCallMediaType("video");
   }, []);
 
   const resetCallState = useCallback(() => {
@@ -108,22 +124,33 @@ export function useVideoCall(
     return peer;
   }, [send]);
 
-  const attachLocalMedia = useCallback(async (peer: RTCPeerConnection) => {
-    let stream = localStreamRef.current;
+  const attachLocalMedia = useCallback(
+    async (
+      peer: RTCPeerConnection,
+      mediaType: CallMediaType = activeCallMediaTypeRef.current,
+    ) => {
+      let stream = localStreamRef.current;
 
-    if (!stream) {
-      stream = await mediaDevices.getUserMedia(CALL_MEDIA_CONSTRAINTS);
-      localStreamRef.current = stream;
-      setLocalStream(stream);
-    }
+      if (!stream || mediaType !== activeCallMediaTypeRef.current) {
+        stream = await mediaDevices.getUserMedia(
+          getCallMediaConstraints(mediaType),
+        );
+        localStreamRef.current = stream;
+        setLocalStream(stream);
+      }
 
-    if (attachedMediaPeerRef.current !== peer) {
-      stream.getTracks().forEach((track) => peer.addTrack(track, stream));
-      attachedMediaPeerRef.current = peer;
-    }
+      if (attachedMediaPeerRef.current !== peer) {
+        stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+        attachedMediaPeerRef.current = peer;
+      }
 
-    return stream;
-  }, []);
+      activeCallMediaTypeRef.current = mediaType;
+      setCallMediaType(mediaType);
+
+      return stream;
+    },
+    [],
+  );
 
   const flushPendingCandidates = useCallback(
     async (peer: RTCPeerConnection) => {
@@ -163,9 +190,18 @@ export function useVideoCall(
       const peer = ensurePeerConnection();
 
       if (msg.payload_type === "offer") {
+        const mediaType =
+          (msg.media_type as CallMediaType | undefined) ?? "video";
+
         activeChatIdRef.current = msg.chat_id;
+        activeCallMediaTypeRef.current = mediaType;
+        setCallMediaType(mediaType);
         pendingCandidatesRef.current = [];
-        setIncomingOffer({ chatId: msg.chat_id, sdp: msg.sdp });
+        setIncomingOffer({
+          chatId: msg.chat_id,
+          sdp: msg.sdp,
+          mediaType,
+        });
         return;
       }
 
@@ -205,7 +241,7 @@ export function useVideoCall(
   ]);
 
   const startCall = useCallback(
-    async (roomId: number) => {
+    async (roomId: number, mediaType: CallMediaType = "video") => {
       if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
         console.error("WebSocket is not open. Cannot start call.");
         return;
@@ -213,15 +249,21 @@ export function useVideoCall(
 
       const peer = ensurePeerConnection();
       activeChatIdRef.current = roomId;
+      activeCallMediaTypeRef.current = mediaType;
+      setCallMediaType(mediaType);
 
-      await attachLocalMedia(peer);
+      await attachLocalMedia(peer, mediaType);
 
-      const offer = await peer.createOffer({});
+      const offer = await peer.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: mediaType === "video",
+      });
       await peer.setLocalDescription(offer);
 
       send({
         type: "call",
         chat_id: roomId,
+        media_type: mediaType,
         payload_type: "offer",
         sdp: offer,
       });
@@ -230,7 +272,7 @@ export function useVideoCall(
   );
 
   const joinCall = useCallback(
-    async (roomId?: number) => {
+    async (roomId?: number, mediaType?: CallMediaType) => {
       if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
         console.error("WebSocket is not open. Cannot join call.");
         return;
@@ -247,10 +289,13 @@ export function useVideoCall(
         return;
       }
 
+      const resolvedMediaType = mediaType ?? offer.mediaType;
       const peer = ensurePeerConnection();
       activeChatIdRef.current = offer.chatId;
+      activeCallMediaTypeRef.current = resolvedMediaType;
+      setCallMediaType(resolvedMediaType);
 
-      await attachLocalMedia(peer);
+      await attachLocalMedia(peer, resolvedMediaType);
       await peer.setRemoteDescription(new RTCSessionDescription(offer.sdp));
       await flushPendingCandidates(peer);
 
@@ -305,15 +350,27 @@ export function useVideoCall(
 
   const toggleMute = () =>
     localStream?.getAudioTracks().forEach((t) => (t.enabled = !t.enabled));
-  const toggleCamera = () =>
+  const toggleCamera = () => {
+    if (callMediaType === "audio") {
+      return;
+    }
+
     localStream?.getVideoTracks().forEach((t) => (t.enabled = !t.enabled));
-  const flipCamera = () =>
+  };
+  const flipCamera = () => {
+    if (callMediaType === "audio") {
+      return;
+    }
+
     localStream?.getVideoTracks().forEach((t) => (t as any)._switchCamera());
+  };
 
   return {
     localStream,
     remoteStream,
     incomingOffer,
+    callMediaType,
+    isAudioOnly: callMediaType === "audio",
     hasIncomingOffer: incomingOffer !== null,
     startCall,
     joinCall,

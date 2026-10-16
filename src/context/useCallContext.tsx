@@ -1,11 +1,11 @@
 import { useRootWebSocket } from "@/context/useRootWebSocket";
-import { useVideoCall } from "@/hooks/useCall";
+import { CallMediaType, useVideoCall } from "@/hooks/useCall";
 import { useRouter } from "expo-router";
 import { createContext, useCallback, useContext, useMemo } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 type CallContextValue = Omit<ReturnType<typeof useVideoCall>, "startCall"> & {
-  startCall: (roomId: number) => Promise<void>;
+  startCall: (roomId: number, mediaType?: CallMediaType) => Promise<void>;
   answerIncomingCall: () => Promise<void>;
 };
 
@@ -17,8 +17,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   const call = useVideoCall(socketRef, isConnected);
 
   const handleStartCall = useCallback(
-    async (roomId: number) => {
-      await call.startCall(roomId);
+    async (roomId: number, mediaType: CallMediaType = "video") => {
+      await call.startCall(roomId, mediaType);
       router.replace({
         pathname: "/call/[id]" as never,
         params: { id: String(roomId) },
@@ -32,7 +32,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    await call.joinCall(call.incomingOffer.chatId);
+    await call.joinCall(
+      call.incomingOffer.chatId,
+      call.incomingOffer.mediaType,
+    );
     router.replace({
       pathname: "/call/[id]" as never,
       params: { id: String(call.incomingOffer.chatId) },
@@ -62,7 +65,11 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.callPopup}>
-            <Text style={styles.popupTitle}>Incoming video call</Text>
+            <Text style={styles.popupTitle}>
+              {call.incomingOffer?.mediaType === "audio"
+                ? "Incoming audio call"
+                : "Incoming video call"}
+            </Text>
             <Text style={styles.popupSubtitle}>
               Chat #{call.incomingOffer?.chatId ?? "-"}
             </Text>

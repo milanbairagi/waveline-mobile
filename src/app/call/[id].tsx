@@ -13,6 +13,7 @@ export default function CallView() {
     toggleMute,
     toggleCamera,
     flipCamera,
+    isAudioOnly,
   } = useCall();
 
   const router = useRouter();
@@ -30,7 +31,12 @@ export default function CallView() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={styles.videoContainer}>
-        {remoteUrl ? (
+        {isAudioOnly ? (
+          <View style={styles.audioState}>
+            <Text style={styles.audioBadge}>Audio call</Text>
+            <Text style={styles.audioLabel}>Connected</Text>
+          </View>
+        ) : remoteUrl ? (
           <RTCView
             streamURL={remoteUrl}
             style={styles.remoteVideo}
@@ -42,7 +48,7 @@ export default function CallView() {
           </View>
         )}
 
-        {streamUrl ? (
+        {!isAudioOnly && streamUrl ? (
           <RTCView
             streamURL={streamUrl}
             style={styles.localVideo}
@@ -56,12 +62,16 @@ export default function CallView() {
         <Pressable style={styles.controlButton} onPress={toggleMute}>
           <Text style={styles.controlText}>Mute</Text>
         </Pressable>
-        <Pressable style={styles.controlButton} onPress={toggleCamera}>
-          <Text style={styles.controlText}>Camera</Text>
-        </Pressable>
-        <Pressable style={styles.controlButton} onPress={flipCamera}>
-          <Text style={styles.controlText}>Flip</Text>
-        </Pressable>
+        {!isAudioOnly ? (
+          <>
+            <Pressable style={styles.controlButton} onPress={toggleCamera}>
+              <Text style={styles.controlText}>Camera</Text>
+            </Pressable>
+            <Pressable style={styles.controlButton} onPress={flipCamera}>
+              <Text style={styles.controlText}>Flip</Text>
+            </Pressable>
+          </>
+        ) : null}
         <Pressable
           style={[styles.controlButton, styles.endButton]}
           onPress={handleEndCall}
@@ -98,6 +108,23 @@ const styles = StyleSheet.create({
   waitingText: {
     color: "#e5e7eb",
     fontSize: 18,
+  },
+  audioState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1f2937",
+    padding: 24,
+  },
+  audioBadge: {
+    color: "#f8fafc",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  audioLabel: {
+    color: "#cbd5e1",
+    fontSize: 16,
   },
   localVideo: {
     position: "absolute",
