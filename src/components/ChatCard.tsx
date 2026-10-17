@@ -1,5 +1,6 @@
 import { useUser } from "@/context/useUser";
 import type { ChatResponse } from "@/types";
+import getOtherParticipant from "@/utils/chatParticipant";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text } from "react-native";
 
@@ -15,14 +16,13 @@ export default function ChatCard({ chat }: { chat: ChatResponse }) {
     return null;
   }
 
-  const otherParticipant =
-    chat.participants_detail[0].id === user.id
-      ? chat.participants_detail[1]
-      : chat.participants_detail[0];
+  const otherParticipant = getOtherParticipant(chat, user.id);
 
   return (
     <Pressable style={styles.container} onPress={handlePress}>
-      <Text style={styles.username}>{otherParticipant.username}</Text>
+      <Text style={styles.username}>
+        {otherParticipant ? otherParticipant.username : "Loading..."}
+      </Text>
       <Text style={styles.lastMessage}>
         {chat.last_message ? chat.last_message.content : "No messages yet"}
       </Text>

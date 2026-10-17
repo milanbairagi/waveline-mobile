@@ -5,6 +5,7 @@ import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
 import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
+import getOtherParticipant from "@/utils/chatParticipant";
 import { FontAwesomeFreeSolid } from "@react-native-vector-icons/fontawesome-free-solid";
 import { AxiosResponse } from "axios";
 import {
@@ -155,14 +156,13 @@ export default function Messages() {
 
   // Update the title when the chat data changes
   useEffect(() => {
-    if (chat && user) {
-      const otherParticipant =
-        chat.participants_detail[0].id === user.id
-          ? chat.participants_detail[1]
-          : chat.participants_detail[0];
-
-      setTitle(otherParticipant.username);
+    if (!chat || !user) {
+      setTitle(null);
+      return;
     }
+
+    const otherParticipant = getOtherParticipant(chat, user.id);
+    setTitle(otherParticipant ? otherParticipant.username : null);
   }, [chat, user]);
 
   // Process incoming WebSocket messages
