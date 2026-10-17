@@ -39,6 +39,7 @@ export default function Messages() {
   const router = useRouter();
   const listRef = useRef<FlatList<Message> | null>(null);
   const shouldScrollToBottomRef = useRef(false);
+  const lastMessageIdRef = useRef<number | null>(null);
   const isTopVisibleRef = useRef(false);
   const loadingMoreRef = useRef(false);
   const [title, setTitle] = useState<string | null>(null);
@@ -98,7 +99,6 @@ export default function Messages() {
           previous: response.data.previous,
         });
         setMessages(response.data.results as Message[]);
-        shouldScrollToBottomRef.current = true;
       } else {
         console.log("Failed to fetch messages:", response.status);
       }
@@ -172,6 +172,7 @@ export default function Messages() {
     const newMessages = wsMessage.filter((msg) => !seenIds.has(msg.id));
 
     if (newMessages.length > 0) {
+      shouldScrollToBottomRef.current = true;
       setMessages((prev) => [...prev, ...newMessages]);
     }
 
@@ -209,6 +210,7 @@ export default function Messages() {
   const handleSendMessage = async (content: string) => {
     console.log("Sending message:", content);
     if (content.trim() && isConnected && id) {
+      shouldScrollToBottomRef.current = true;
       sendMessage(Number(id), content);
     }
   };
@@ -279,6 +281,21 @@ export default function Messages() {
       listRef.current?.scrollToEnd({ animated: false });
     });
   }, []);
+
+  useEffect(() => {
+    if (messages.length === 0) {
+      lastMessageIdRef.current = null;
+      return;
+    }
+
+    const lastMessageId = messages[messages.length - 1]?.id ?? null;
+
+    if (lastMessageId !== lastMessageIdRef.current) {
+      shouldScrollToBottomRef.current = true;
+    }
+
+    lastMessageIdRef.current = lastMessageId;
+  }, [messages]);
 
   if (loading) {
     return (
