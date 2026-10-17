@@ -5,6 +5,7 @@ import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
 import { ChatResponse, Message } from "@/types";
 import api from "@/utils/api";
+import { FontAwesomeFreeSolid } from "@react-native-vector-icons/fontawesome-free-solid";
 import { AxiosResponse } from "axios";
 import {
   Stack,
@@ -14,7 +15,6 @@ import {
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Button,
   FlatList,
   StyleSheet,
   Text,
@@ -63,11 +63,14 @@ export default function Messages() {
   } = useRootWebSocket();
   const { startCall } = useCall();
 
-  const handleGoToVideoCall = useCallback(async () => {
-    if (id) {
-      await startCall(Number(id));
-    }
-  }, [id, startCall]);
+  const handleGoToCall = useCallback(
+    async (mediaType: "audio" | "video") => {
+      if (id) {
+        await startCall(Number(id), mediaType);
+      }
+    },
+    [id, startCall],
+  );
 
   const getChatById = useCallback(
     async (id: number) => {
@@ -307,8 +310,29 @@ export default function Messages() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ title: title ?? `Chat ${id}` }} />
-      <Button title="Video Call" onPress={handleGoToVideoCall} />
+      {/* <Stack.Screen options={{ title: title ?? `Chat ${id}` }} /> */}
+
+      <Stack.Screen
+        options={{
+          headerTitle: title ?? `Chat ${id}`,
+          headerRight: () => (
+            <View style={styles.callActions}>
+              <FontAwesomeFreeSolid
+                name="phone"
+                size={24}
+                color="black"
+                onPress={() => void handleGoToCall("audio")}
+              />
+              <FontAwesomeFreeSolid
+                name="video-camera"
+                size={24}
+                color="black"
+                onPress={() => void handleGoToCall("video")}
+              />
+            </View>
+          ),
+        }}
+      />
 
       <FlatList
         ref={listRef}
@@ -339,7 +363,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingVertical: 12,
   },
-
+  callActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 16,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+  },
   messageSeparator: {
     height: 12,
   },
