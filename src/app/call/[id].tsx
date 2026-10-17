@@ -1,11 +1,15 @@
 import { useCall } from "@/context/useCallContext";
+import { useUser } from "@/context/useUser";
+import type { ParticipantDetails } from "@/types";
+import { getOtherParticipantFromChatId } from "@/utils/chatParticipant";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RTCView } from "react-native-webrtc";
 
 export default function CallView() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useUser();
   const {
     localStream,
     remoteStream,
@@ -15,11 +19,27 @@ export default function CallView() {
     flipCamera,
     isAudioOnly,
   } = useCall();
+  const [callee, setCallee] = useState<ParticipantDetails | null>(null);
 
   const router = useRouter();
 
   const streamUrl = localStream?.toURL?.();
   const remoteUrl = remoteStream?.toURL?.();
+
+  useEffect(() => {
+    const loadCallee = async () => {
+      if (!id) {
+        setCallee(null);
+        return;
+      }
+      const callee = await getOtherParticipantFromChatId(
+        Number(id),
+        user?.id ?? null,
+      );
+      setCallee(callee);
+    };
+    void loadCallee();
+  }, [id, user?.id]);
 
   const handleEndCall = useCallback(() => {
     endCall();
@@ -80,7 +100,9 @@ export default function CallView() {
         </Pressable>
       </View>
 
-      <Text style={styles.roomLabel}>Call room: {id ?? "-"}</Text>
+      <Text style={styles.roomLabel}>
+        {callee ? `Calling: ${callee.username}` : "Loading callee info..."}
+      </Text>
     </View>
   );
 }

@@ -13,7 +13,7 @@ export type Tokens = {
   refresh: string;
 };
 
-type ParticipantDetails = {
+export type ParticipantDetails = {
   id: number;
   username: string;
 };

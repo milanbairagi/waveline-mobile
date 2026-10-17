@@ -1,7 +1,17 @@
 import { useRootWebSocket } from "@/context/useRootWebSocket";
+import { useUser } from "@/context/useUser";
 import { CallMediaType, useVideoCall } from "@/hooks/useCall";
+import type { ParticipantDetails } from "@/types";
+import { getOtherParticipantFromChatId } from "@/utils/chatParticipant";
 import { useRouter } from "expo-router";
-import { createContext, useCallback, useContext, useMemo } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 type CallContextValue = Omit<ReturnType<typeof useVideoCall>, "startCall"> & {
@@ -14,7 +24,25 @@ const CallContext = createContext<CallContextValue | null>(null);
 export function CallProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { socketRef, isConnected } = useRootWebSocket();
+  const { user } = useUser();
   const call = useVideoCall(socketRef, isConnected);
+  const [caller, setCaller] = useState<ParticipantDetails | null>(null);
+
+  useEffect(() => {
+    const loadCaller = async () => {
+      if (!call.incomingOffer) {
+        setCaller(null);
+        return;
+      }
+      const { chatId } = call.incomingOffer;
+      const otherParticipant = await getOtherParticipantFromChatId(
+        chatId,
+        user?.id ?? null,
+      );
+      setCaller(otherParticipant);
+    };
+    void loadCaller();
+  }, [call.incomingOffer, user?.id]);
 
   const handleStartCall = useCallback(
     async (roomId: number, mediaType: CallMediaType = "video") => {
@@ -71,7 +99,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
                 : "Incoming video call"}
             </Text>
             <Text style={styles.popupSubtitle}>
-              Chat #{call.incomingOffer?.chatId ?? "-"}
+              {/* Chat #{call.incomingOffer?.chatId ?? "-"} */}
+              {caller ? `From: ${caller.username}` : "Loading caller info..."}
             </Text>
             <View style={styles.popupActions}>
               <Pressable
