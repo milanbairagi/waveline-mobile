@@ -6,7 +6,7 @@ import type { ChatResponse } from "@/types";
 import api from "@/utils/api";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
@@ -88,7 +88,12 @@ export default function Index() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: "WaveLine",
+          headerTitle: () => (
+            <Image
+              source={require("@/assets/images/logowithname.png")}
+              style={{ maxWidth: 150, height: 28 }}
+            />
+          ),
           headerBackVisible: false,
           headerRight: () => (
             <MainDropdownMenu
