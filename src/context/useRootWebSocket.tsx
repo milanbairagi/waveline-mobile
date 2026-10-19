@@ -76,26 +76,36 @@ export const RootWebSocketProvider = ({
   }, [setSocketURL]);
 
   const initializeWebSocket = useCallback(async () => {
-    if (isConnected) {
+    if (!user) {
+      disconnectRef.current();
       return;
     }
 
     const token = await getData(ACCESS_TOKEN_KEY);
     if (!token) {
+      disconnectRef.current();
       return;
     }
 
-    disconnectRef.current();
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      disconnectRef.current();
+    }
+
     connect(token as string);
-  }, [connect, isConnected]);
+  }, [connect, socketRef, user]);
 
   useEffect(() => {
-    if (!socketURL || userLoading || !user || isConnected) {
+    if (!socketURL || userLoading) {
+      return;
+    }
+
+    if (!user) {
+      disconnectRef.current();
       return;
     }
 
     void initializeWebSocket();
-  }, [socketURL, user, userLoading, isConnected, initializeWebSocket]);
+  }, [socketURL, user, userLoading, initializeWebSocket]);
 
   useEffect(() => {
     return () => {
