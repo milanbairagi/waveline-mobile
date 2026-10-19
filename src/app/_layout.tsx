@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { Image } from "react-native";
 import { CallProvider } from "../context/useCallContext";
 import { RootWebSocketProvider } from "../context/useRootWebSocket";
 import { UserProvider } from "../context/useUser";
@@ -12,7 +13,12 @@ export default function RootLayout() {
             <Stack.Screen
               name="index"
               options={{
-                headerTitle: "WaveLine",
+                headerTitle: () => (
+                  <Image
+                    source={require("@/assets/images/logowithname.png")}
+                    style={{ maxWidth: 150, height: 28 }}
+                  />
+                ),
                 headerBackVisible: false,
               }}
             />
