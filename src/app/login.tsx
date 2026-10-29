@@ -35,7 +35,10 @@ export default function Login() {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const [showPassword, setShowPassword] = useState(false);
-  const logoWidth = Math.min(screenWidth - styles.scrollContent.paddingHorizontal * 2, 390);
+  const logoWidth = Math.min(
+    screenWidth - styles.scrollContent.paddingHorizontal * 2,
+    390,
+  );
   const logoHeight = logoWidth / logoAspectRatio;
 
   const {
@@ -68,7 +71,7 @@ export default function Login() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView

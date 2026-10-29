@@ -17,6 +17,7 @@
       "bundleIdentifier": "com.waveline"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE"
       },
