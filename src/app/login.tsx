@@ -191,25 +191,6 @@ export default function Login() {
   );
 }
 
-function Feature({
-  accent,
-  label,
-  symbol,
-}: {
-  accent: string;
-  label: string;
-  symbol: string;
-}) {
-  return (
-    <View style={styles.feature}>
-      <View style={[styles.featureIcon, { backgroundColor: accent }]}>
-        <Text style={styles.featureSymbol}>{symbol}</Text>
-      </View>
-      <Text style={styles.featureLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const colors = {
   background: "#F2F3F5",
   input: "#E8E9EB",
