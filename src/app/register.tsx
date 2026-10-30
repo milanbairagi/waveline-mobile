@@ -191,6 +191,10 @@ export default function Register() {
                 Sign in
               </Link>
             </Text>
+
+            <Link href="/settings" style={styles.settingsLink}>
+              settings
+            </Link>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -384,5 +388,12 @@ const styles = StyleSheet.create({
   registerLink: {
     color: colors.primaryDark,
     fontWeight: "700",
+  },
+
+  settingsLink: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginTop: 16,
+    textDecorationLine: "underline",
   },
 });
