@@ -1,10 +1,10 @@
+import PasswordField from "@/components/ui/PasswordField";
 import { useUser } from "@/context/useUser";
 import { Tokens } from "@/types";
 import api from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -51,8 +51,6 @@ export default function Register() {
   const { loginUser } = useUser();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const logoWidth = Math.min(
     screenWidth - styles.scrollContent.paddingHorizontal * 2,
     390,
@@ -152,9 +150,7 @@ export default function Register() {
                 control={control}
                 name="password"
                 placeholder="Enter your password"
-                visible={showPassword}
                 error={errors.password?.message}
-                onToggle={() => setShowPassword((visible) => !visible)}
               />
 
               <Text style={styles.label}>Confirm Password</Text>
@@ -162,9 +158,7 @@ export default function Register() {
                 control={control}
                 name="confirmPassword"
                 placeholder="Confirm your password"
-                visible={showConfirmPassword}
                 error={errors.confirmPassword?.message}
-                onToggle={() => setShowConfirmPassword((visible) => !visible)}
               />
 
               <Pressable
@@ -199,61 +193,6 @@ export default function Register() {
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
-  );
-}
-
-function PasswordField({
-  control,
-  error,
-  name,
-  onToggle,
-  placeholder,
-  visible,
-}: {
-  control: ReturnType<typeof useForm<RegisterFormValues>>["control"];
-  error?: string;
-  name: "password" | "confirmPassword";
-  onToggle: () => void;
-  placeholder: string;
-  visible: boolean;
-}) {
-  return (
-    <>
-      <View>
-        <Controller
-          control={control}
-          name={name}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              style={[
-                styles.input,
-                styles.passwordInput,
-                error && styles.errorInput,
-              ]}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              placeholder={placeholder}
-              placeholderTextColor={colors.textTertiary}
-              secureTextEntry={!visible}
-              textContentType={name === "password" ? "newPassword" : "password"}
-            />
-          )}
-        />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={visible ? "Hide password" : "Show password"}
-          hitSlop={8}
-          onPress={onToggle}
-          style={styles.passwordToggle}
-        >
-          <Text style={styles.passwordToggleText}>
-            {visible ? "Hide" : "Show"}
-          </Text>
-        </Pressable>
-      </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
-    </>
   );
 }
 
@@ -331,19 +270,6 @@ const styles = StyleSheet.create({
     minHeight: 54,
     paddingHorizontal: 16,
     marginBottom: 10,
-  },
-  passwordInput: {
-    paddingRight: 70,
-  },
-  passwordToggle: {
-    position: "absolute",
-    right: 16,
-    top: 18,
-  },
-  passwordToggleText: {
-    color: colors.primaryDark,
-    fontSize: 14,
-    fontWeight: "600",
   },
   errorInput: {
     backgroundColor: "#FEE2E2",

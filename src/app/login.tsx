@@ -1,10 +1,10 @@
+import PasswordField from "@/components/ui/PasswordField";
 import { useUser } from "@/context/useUser";
 import { Tokens } from "@/types";
 import api from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -34,7 +34,6 @@ export default function Login() {
   const { loginUser } = useUser();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
-  const [showPassword, setShowPassword] = useState(false);
   const logoWidth = Math.min(
     screenWidth - styles.scrollContent.paddingHorizontal * 2,
     390,
@@ -118,41 +117,12 @@ export default function Login() {
               )}
 
               <Text style={styles.label}>Password</Text>
-              <View>
-                <Controller
-                  control={control}
-                  name="password"
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <TextInput
-                      style={[
-                        styles.input,
-                        styles.passwordInput,
-                        errors.password && styles.errorInput,
-                      ]}
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                      placeholder="Enter your password"
-                      placeholderTextColor={colors.textTertiary}
-                      secureTextEntry={!showPassword}
-                      textContentType="password"
-                    />
-                  )}
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    showPassword ? "Hide password" : "Show password"
-                  }
-                  hitSlop={8}
-                  onPress={() => setShowPassword((visible) => !visible)}
-                  style={styles.passwordToggle}
-                >
-                  <Text style={styles.passwordToggleText}>
-                    {showPassword ? "Hide" : "Show"}
-                  </Text>
-                </Pressable>
-              </View>
+              <PasswordField
+                control={control}
+                name="password"
+                placeholder="Enter your password"
+                error={errors.password?.message}
+              />
               {errors.password && (
                 <Text style={styles.errorText}>{errors.password.message}</Text>
               )}
@@ -280,19 +250,6 @@ const styles = StyleSheet.create({
     minHeight: 54,
     paddingHorizontal: 16,
     marginBottom: 10,
-  },
-  passwordInput: {
-    paddingRight: 70,
-  },
-  passwordToggle: {
-    position: "absolute",
-    right: 16,
-    top: 18,
-  },
-  passwordToggleText: {
-    color: colors.primaryDark,
-    fontSize: 14,
-    fontWeight: "600",
   },
   errorInput: {
     backgroundColor: "#FEE2E2",
