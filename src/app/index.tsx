@@ -4,7 +4,7 @@ import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
 import type { ChatResponse } from "@/types";
 import api from "@/utils/api";
-import { MaterialIcons } from "@react-native-vector-icons/material-icons/static";
+import { MaterialIcons } from "@react-native-vector-icons/material-icons";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
