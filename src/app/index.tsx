@@ -4,6 +4,7 @@ import { useRootWebSocket } from "@/context/useRootWebSocket";
 import { useUser } from "@/context/useUser";
 import type { ChatResponse } from "@/types";
 import api from "@/utils/api";
+import { MaterialIcons } from "@react-native-vector-icons/material-icons/static";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -104,7 +105,9 @@ export default function Index() {
           headerBackVisible: false,
           headerRight: () => (
             <MainDropdownMenu
-              trigger={<Text style={{ fontSize: 24 }}>⋮</Text>}
+              trigger={
+                <MaterialIcons name="more-vert" size={24} color="#1F2937" />
+              }
               items={[
                 { label: "Logout", onPress: logoutUser },
                 {
