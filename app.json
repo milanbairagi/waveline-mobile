@@ -17,6 +17,7 @@
       "bundleIdentifier": "com.waveline"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE"
       },
@@ -67,7 +68,8 @@
         }
       ],
       "@react-native-vector-icons/fontawesome-free-solid",
-      "@react-native-vector-icons/lucide"
+      "@react-native-vector-icons/lucide",
+      "@react-native-vector-icons/material-icons"
     ],
     "experiments": {
       "typedRoutes": true,

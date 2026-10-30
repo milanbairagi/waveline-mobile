@@ -16,7 +16,7 @@ export default function RootLayout() {
                 headerTitle: () => (
                   <Image
                     source={require("@/assets/images/logowithname.png")}
-                    style={{ maxWidth: 150, height: 28 }}
+                    style={{ maxWidth: 140, height: 30 }}
                   />
                 ),
                 headerBackVisible: false,

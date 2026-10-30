@@ -87,13 +87,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   bubbleOwn: {
-    backgroundColor: "#5666ab",
+    backgroundColor: "#3B82F6",
     borderBottomRightRadius: 6,
   },
   bubbleOther: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#F8F9FB",
     borderWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: "#D7DCE3",
     borderBottomLeftRadius: 6,
   },
   messageText: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   timestampOwn: {
-    color: "rgba(255,255,255,0.75)",
+    color: "rgba(255,255,255,0.8)",
   },
   timestampOther: {
     color: "#6B7280",
@@ -134,6 +134,6 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   checkMarkRead: {
-    color: "#A5B4FC",
+    color: "#DBEAFE",
   },
 });

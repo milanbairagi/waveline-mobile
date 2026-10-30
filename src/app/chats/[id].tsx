@@ -17,6 +17,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   View,
@@ -310,23 +312,45 @@ export default function Messages() {
 
   return (
     <View style={styles.container}>
-      {/* <Stack.Screen options={{ title: title ?? `Chat ${id}` }} /> */}
-
       <Stack.Screen
         options={{
-          headerTitle: title ?? `Chat ${id}`,
+          headerTitle: () => (
+            <View style={styles.headerTitle}>
+              <View style={styles.headerAvatar}>
+                <Text style={styles.headerAvatarText}>
+                  {(title ?? "C").charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.headerName}>{title ?? `Chat ${id}`}</Text>
+                <View style={styles.statusRow}>
+                  <View
+                    style={[
+                      styles.statusDot,
+                      isConnected
+                        ? styles.statusConnected
+                        : styles.statusDisconnected,
+                    ]}
+                  />
+                  <Text style={styles.statusText}>
+                    {isConnected ? "Connected" : "Offline"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ),
           headerRight: () => (
             <View style={styles.callActions}>
               <FontAwesomeFreeSolid
                 name="phone"
                 size={24}
-                color="black"
+                color="#2563EB"
                 onPress={() => void handleGoToCall("audio")}
               />
               <FontAwesomeFreeSolid
                 name="video-camera"
                 size={24}
-                color="black"
+                color="#2563EB"
                 onPress={() => void handleGoToCall("video")}
               />
             </View>
@@ -334,20 +358,29 @@ export default function Messages() {
         }}
       />
 
-      <FlatList
-        ref={listRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={keyExtractor}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        onContentSizeChange={handleContentSizeChange}
-        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-        viewabilityConfig={viewabilityConfig}
-        onViewableItemsChanged={handleViewableItemsChanged}
-        ItemSeparatorComponent={() => <View style={styles.messageSeparator} />}
-      />
-      <MessageInput handleSendMessage={handleSendMessage} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+      >
+        <View style={{ flex: 1 }}>
+          <FlatList
+            ref={listRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={keyExtractor}
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            onContentSizeChange={handleContentSizeChange}
+            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+            viewabilityConfig={viewabilityConfig}
+            onViewableItemsChanged={handleViewableItemsChanged}
+            ItemSeparatorComponent={() => (
+              <View style={styles.messageSeparator} />
+            )}
+          />
+          <MessageInput handleSendMessage={handleSendMessage} />
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -355,20 +388,69 @@ export default function Messages() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#E5E7EB",
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingVertical: 12,
+    flexGrow: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 16,
+    paddingTop: 16,
   },
   callActions: {
+    alignItems: "center",
     flexDirection: "row",
-    justifyContent: "flex-end",
     gap: 16,
     paddingHorizontal: 12,
-    paddingTop: 12,
+  },
+  headerTitle: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
+  headerAvatar: {
+    alignItems: "center",
+    backgroundColor: "#3B82F6",
+    borderRadius: 20,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+  headerAvatarText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  headerName: {
+    color: "#1F2937",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  statusRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    marginTop: 2,
+  },
+  statusDot: {
+    borderRadius: 4,
+    height: 7,
+    marginRight: 5,
+    width: 7,
+  },
+  statusConnected: {
+    backgroundColor: "#22C55E",
+  },
+  statusDisconnected: {
+    backgroundColor: "#9CA3AF",
+  },
+  statusText: {
+    color: "#8A94A3",
+    fontSize: 11,
   },
   messageSeparator: {
     height: 12,
