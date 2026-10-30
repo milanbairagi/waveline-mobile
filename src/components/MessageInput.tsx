@@ -1,12 +1,6 @@
-import { FontAwesomeFreeSolid } from "@react-native-vector-icons/fontawesome-free-solid";
+import { Lucide } from "@react-native-vector-icons/lucide/static";
 import { useEffect, useState } from "react";
-import {
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View
-} from "react-native";
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 
 type MessageInputProps = {
   handleSendMessage: (message: string) => void;
@@ -64,7 +58,7 @@ export default function MessageInput({ handleSendMessage }: MessageInputProps) {
         ]}
       >
         {/* <Text style={styles.sendIcon}>➤</Text> */}
-        <FontAwesomeFreeSolid name="paper-plane" style={styles.sendIcon} />
+        <Lucide name="send-horizontal" style={styles.sendIcon} />
       </Pressable>
     </View>
   );
@@ -109,8 +103,6 @@ const styles = StyleSheet.create({
   },
   sendIcon: {
     color: "#64748B",
-    fontSize: 22,
-    fontWeight: "700",
-    transform: [{ rotate: "-12deg" }],
+    fontSize: 20,
   },
 });
