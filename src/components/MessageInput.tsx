@@ -1,4 +1,4 @@
-import { Lucide } from "@react-native-vector-icons/lucide/static";
+import { Lucide } from "@react-native-vector-icons/lucide";
 import { useEffect, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 
